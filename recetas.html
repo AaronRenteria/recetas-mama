@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>🍲 Recetas de Mamá</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff9800">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff3e0;
+      margin: 0;
+      padding: 15px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    textarea {
+      min-height: 80px;
+    }
+
+    button {
+      background: #ff9800;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: white;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .titulo {
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .detalle {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .abierta .detalle {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🍲 Recetas de Mamá</h1>
+
+<input id="nombre" placeholder="Nombre de la receta">
+<textarea id="ingredientes" placeholder="Ingredientes"></textarea>
+<textarea id="pasos" placeholder="Pasos de preparación"></textarea>
+<input id="tiempo" placeholder="Tiempo (ej. 30 min)">
+
+<!-- ÚNICO BOTÓN -->
+<button onclick="guardar()">💾 Guardar receta</button>
+
+<input id="buscar" placeholder="🔍 Buscar receta">
+
+<ul id="lista"></ul>
+
+<script>
+  let recetas = JSON.parse(localStorage.getItem("recetas")) || [];
+  let abierta = -1;
+
+  function guardar() {
+    if (!nombre.value) {
+      alert("Escribe el nombre de la receta");
+      return;
+    }
+
+    recetas.push({
+      nombre: nombre.value,
+      ingredientes: ingredientes.value,
+      pasos: pasos.value,
+      tiempo: tiempo.value
+    });
+
+    localStorage.setItem("recetas", JSON.stringify(recetas));
+    limpiar();
+    mostrar();
+  }
+
+  function mostrar(filtro = "") {
+    lista.innerHTML = "";
+
+    recetas
+      .filter(r => r.nombre.toLowerCase().includes(filtro))
+      .forEach((r, i) => {
+        lista.innerHTML += `
+          <li class="${abierta === i ? "abierta" : ""}">
+            <div class="titulo" onclick="toggle(${i})">
+              ${r.nombre}
+              <span>⏱ ${r.tiempo}</span>
+            </div>
+            <div class="detalle">
+              <p><b>Ingredientes:</b><br>${r.ingredientes}</p>
+              <p><b>Preparación:</b><br>${r.pasos}</p>
+            </div>
+          </li>
+        `;
+      });
+  }
+
+  function toggle(i) {
+    abierta = abierta === i ? -1 : i;
+    mostrar(buscar.value.toLowerCase());
+  }
+
+  function limpiar() {
+    nombre.value = "";
+    ingredientes.value = "";
+    pasos.value = "";
+    tiempo.value = "";
+  }
+
+  buscar.addEventListener("input", e => {
+    mostrar(e.target.value.toLowerCase());
+  });
+
+  mostrar();
+
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+</body>
+</html>
